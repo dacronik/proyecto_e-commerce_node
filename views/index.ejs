@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/css/styles.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/tailwind.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>CRUD de Usuarios</title>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-5">
+        <h1 class="text-2xl font-bold">Lista de Usuarios</h1>
+        <input type="text" id="search" value="<%= searchQuery %>" placeholder="Buscar..." class="border p-2 mt-4" oninput="searchUsers()">
+        <button id="addUser" class="bg-blue-500 text-white px-4 py-2 rounded flex items-center mt-4">
+            <span class="material-icons">➕</span> Agregar Usuario
+        </button>
+        <table class="mt-4 w-full border border-gray-300">
+            <thead>
+                <tr>
+                    <th class="border border-gray-300">Nombre</th>
+                    <th class="border border-gray-300">Apellido</th>
+                    <th class="border border-gray-300">RUT</th>
+                    <th class="border border-gray-300">Email</th>
+                    <th class="border border-gray-300">Teléfono</th>
+                    <th class="border border-gray-300">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="userTable">
+                <% users.forEach(user => { %>
+                    <tr>
+                        <td class="border border-gray-300"><%= user.name %></td>
+                        <td class="border border-gray-300"><%= user.lastName %></td>
+                        <td class="border border-gray-300"><%= user.rut %></td>
+                        <td class="border border-gray-300"><%= user.email %></td>
+                        <td class="border border-gray-300"><%= user.phoneNumber %></td>
+                        <td class="border border-gray-300">
+                            <button class="text-blue-500 view-btn" data-id="<%= user.id %>">👁️</button>
+                            <button class="text-yellow-500 edit-btn" data-id="<%= user.id %>">✏️</button>
+                            <button class="text-red-500 delete-btn" data-id="<%= user.id %>">🗑️</button>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('addUser').addEventListener('click', async () => {
+            const { value: formValues } = await Swal.fire({
+                title: 'Agregar Usuario',
+                html: `
+                    <input id="name" class="swal2-input" placeholder="Nombre">
+                    <input id="lastName" class="swal2-input" placeholder="Apellido">
+                    <input id="rut" class="swal2-input" placeholder="RUT">
+                    <input id="email" class="swal2-input" placeholder="Email">
+                    <input id="phoneNumber" class="swal2-input" placeholder="Teléfono">
+                `,
+                focusConfirm: false,
+                preConfirm: () => {
+                    return {
+                        name: document.getElementById('name').value,
+                        lastName: document.getElementById('lastName').value,
+                        rut: document.getElementById('rut').value,
+                        email: document.getElementById('email').value,
+                        phoneNumber: document.getElementById('phoneNumber').value
+                    }
+                }
+            });
+
+            if (formValues) {
+                const response = await fetch('/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formValues),
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                }
+            }
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const userId = button.getAttribute('data-id');
+                const response = await fetch(`/edit/${userId}`);
+                if (!response.ok) {
+                    Swal.fire('Error', 'No se pudo encontrar el usuario', 'error');
+                    return;
+                }
+                const user = await response.json();
+
+                const { value: updatedUser } = await Swal.fire({
+                    title: 'Editar Usuario',
+                    html: `
+                        <input id="name" class="swal2-input" value="${user.name}">
+                        <input id="lastName" class="swal2-input" value="${user.lastName}">
+                        <input id="rut" class="swal2-input" value="${user.rut}">
+                        <input id="email" class="swal2-input" value="${user.email}">
+                        <input id="phoneNumber" class="swal2-input" value="${user.phoneNumber}">
+                    `,
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        return {
+                            name: document.getElementById('name').value,
+                            lastName: document.getElementById('lastName').value,
+                            rut: document.getElementById('rut').value,
+                            email: document.getElementById('email').value,
+                            phoneNumber: document.getElementById('phoneNumber').value
+                        }
+                    }
+                });
+
+                if (updatedUser) {
+                    const updateResponse = await fetch(`/update/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(updatedUser),
+                    });
+
+                    if (updateResponse.ok) {
+                        Swal.fire({
+                            title: 'Actualizado!',
+                            text: 'El usuario ha sido actualizado correctamente',
+                            showCloseButton: true,
+                            icon:'success',
+                            timer:2000,
+                            timerProgressBar: true,
+                        }).then((result) =>{
+                            if (result.dismiss === Swal.DismissReason.timer) {
+                                // Si el usuario no cierra el mensaje, puedes recargar la página o hacer otra acción
+                                window.location.reload();
+                            } else {
+                                // Actualizar la fila en la tabla
+                                const row = button.closest('tr');
+                                row.cells[0].innerText = updatedUser.name; // Nombre
+                                row.cells[1].innerText = updatedUser.lastName; // Apellido
+                                row.cells[2].innerText = updatedUser.rut; // RUT
+                                row.cells[3].innerText = updatedUser.email; // Email
+                                row.cells[4].innerText = updatedUser.phoneNumber; // Teléfono
+                            }
+                        })
+                        
+                        
+                    } else {
+                        Swal.fire('Error', 'No se pudo actualizar el usuario', 'error');
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const userId = button.getAttribute('data-id');
+                const result = await Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "¡No podrás revertir esto!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                });
+
+                if (result.isConfirmed) {
+                    const response = await fetch(`/delete/${userId}`, {
+                        method: 'POST',
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('.view-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const userId = button.getAttribute('data-id');
+                const response = await fetch(`/edit/${userId}`);
+                
+                if (!response.ok) {
+                    Swal.fire('Error', 'No se pudo encontrar el usuario', 'error');
+                    return;
+                }
+        
+                const user = await response.json();
+        
+                const avatarUrl = `https://api.dicebear.com/9.x/pixel-art/svg`;
+        
+                Swal.fire({
+                    title: `${user.name} ${user.lastName}`,
+                    html: `
+                <div style="text-align: center;">
+                    <img src="${avatarUrl}" alt="Avatar" style="border-radius: 50%; width: 100px; height: 100px; display: block; margin: 0 auto;"/>
+                </div>
+                <p style="text-align: center;"><strong>RUT:</strong> ${user.rut}</p>
+                <p style="text-align: center;"><strong>Email:</strong> ${user.email}</p>
+                <p style="text-align: center;"><strong>Teléfono:</strong> ${user.phoneNumber}</p>
+            `,
+                    showCloseButton: true,
+                    confirmButtonText: 'Cerrar'
+                });
+            });
+        });
+
+        function searchUsers() {
+            const query = document.getElementById('search').value;
+            window.location.href = `/?search=${query}`;
+        }
+    </script>
+</body>
+</html>

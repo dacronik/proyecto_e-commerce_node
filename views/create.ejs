@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/css/styles.css" rel="stylesheet">
+    <title>Crear Usuario</title>
+</head>
+<body>
+    <div>
+        <h1>Crear Usuario</h1>
+        <form action="/create" method="POST">
+            <input type="text" name="name" placeholder="Nombre" required>
+            <input type="text" name="lastName" placeholder="Apellido" required>
+            <input type="text" name="rut" placeholder="RUT" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="text" name="phoneNumber" placeholder="Teléfono" required>
+            <button type="submit">Crear</button>
+        </form>
+
+        <% if (errors) { %>
+            <ul>
+                <% errors.forEach(error => { %>
+                    <li><%= error.message %></li>
+                <% }) %>
+            </ul>
+        <% } %>
+    </div>
+</body>
+</html>

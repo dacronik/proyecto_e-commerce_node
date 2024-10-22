@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/css/styles.css" rel="stylesheet">
+    <title>Editar Usuario</title>
+</head>
+<body>
+    <div>
+        <h1>Editar Usuario</h1>
+        <form action="/update/<%= user.id %>" method="POST">
+            <input type="text" name="name" value="<%= user.name %>" required>
+            <input type="text" name="lastName" value="<%= user.lastName %>" required>
+            <input type="text" name="rut" value="<%= user.rut %>" required>
+            <input type="email" name="email" value="<%= user.email %>" required>
+            <input type="text" name="phoneNumber" value="<%= user.phoneNumber %>" required>
+            <button type="submit">Actualizar</button>
+        </form>
+    </div>
+</body>
+</html>
