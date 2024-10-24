@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const { conectDB, sequelize } = require('./data/db');
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes')
+const categoryRoutes = require('./routes/categoryRoutes');
 const app = express();
 const port = 3000;
 conectDB();
@@ -21,6 +22,7 @@ app.use(bodyParser.json());
 // Routes
 app.use('/', userRoutes);
 app.use('/productos', productRoutes);
+app.use('/categorias', categoryRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);

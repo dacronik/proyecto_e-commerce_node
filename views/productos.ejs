@@ -146,25 +146,20 @@
             fetch(`/productos/${id}`)
                 .then(response => response.json())
                 .then(product => {
+                    console.log(product);
                     Swal.fire({
                         title: 'Editar Producto',
                         html: `
-                            <input type="text" id="productName" class="swal2-input" value="${product.name}" placeholder="Nombre">
-                            <input type="text" id="productPrice" class="swal2-input" value="${product.price}" placeholder="Precio">
-                            <input type="text" id="productStock" class="swal2-input" value="${product.stock}" placeholder="Stock">
-                            <input type="text" id="productCategory" class="swal2-input" value="${product.category}" placeholder="Categoría">
+                            <input  id="productName" class="swal2-input" value="${product.name}" placeholder="Nombre">
+                            <input  id="productPrice" class="swal2-input" value="${product.price}" placeholder="Precio">
+                            <input  id="productStock" class="swal2-input" value="${product.stock}" placeholder="Stock">
+                            <input  id="productCategory" class="swal2-input" value="${product.category}" placeholder="Categoría">
                             <textarea id="productDescription" class="swal2-textarea" placeholder="Descripción">${product.description}</textarea>
                         `,
                         confirmButtonText: 'Actualizar',
                         showCancelButton: true,
                         cancelButtonText: 'Cancelar',
-                        willOpen: () => {
-                            const closeButton = document.createElement('button');
-                            closeButton.textContent = 'X';
-                            closeButton.className = 'absolute top-2 right-2 text-gray-600';
-                            closeButton.onclick = Swal.close;
-                            Swal.getContent().append(closeButton);
-                        },
+                        
                         preConfirm: () => {
                             const name = document.getElementById('productName').value;
                             const price = document.getElementById('productPrice').value;
@@ -188,8 +183,11 @@
                             formData.append('description', result.value.description);
 
                             fetch(`/productos/${id}`, {
-                                method: 'POST',
-                                body: formData
+                                method: 'PUT', // Asegurarse de usar el método PUT
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(result.value)
                             })
                             .then(response => response.json())
                             .then(data => {
@@ -210,6 +208,37 @@
                 .catch(err => {
                     Swal.fire('Error', 'No se pudo cargar el producto', 'error');
                 });
+        }
+
+        // Función para eliminar producto
+        function deleteProduct(id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: 'Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/productos/${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            Swal.fire('Error', data.error, 'error');
+                        } else {
+                            Swal.fire('Éxito', 'Producto eliminado exitosamente', 'success').then(() => {
+                                location.reload();
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        Swal.fire('Error', 'No se pudo eliminar el producto', 'error');
+                    });
+                }
+            });
         }
     </script>
 </body>

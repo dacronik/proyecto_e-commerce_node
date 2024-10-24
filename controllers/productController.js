@@ -1,11 +1,13 @@
 const productService = require('../services/productService');
+const categoyService = require('../services/categoyService');
 
 const productController = {
     getAllProducts: async (req, res) => {
         console.log('llamando a getAllProducts')
         try {
             const products = await productService.getAllProducts();
-            res.render('productos', { products });
+            const categories = await categoyService.getAllCategories();
+            res.render('productos', { products, categories });
         } catch (error) {
             console.error(error);
             res.status(500).send('Error interno del servidor');

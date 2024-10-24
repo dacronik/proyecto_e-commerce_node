@@ -3,20 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorias</title>
     <link href="/css/styles.css" rel="stylesheet">
-    <title>Editar Usuario</title>
+    <link rel="stylesheet" href="/css/tailwind.css">
 </head>
-<body>
-    <div>
-        <h1>Editar Usuario</h1>
-        <form action="/update/<%= user.id %>" method="POST">
-            <input type="text" name="name" value="<%= user.name %>" required>
-            <input type="text" name="lastName" value="<%= user.lastName %>" required>
-            <input type="text" name="rut" value="<%= user.rut %>" required>
-            <input type="email" name="email" value="<%= user.email %>" required>
-            <input type="text" name="phoneNumber" value="<%= user.phoneNumber %>" required>
-            <button type="submit">Actualizar</button>
-        </form>
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-10">
+        <h1 class="text-2xl font-bold mb-6">Gestión de Categorías</h1>
     </div>
+
+    <!-- Botón para agregar categorias -->
+    <section class="flex justify-end mb-4">
+        <button id="addCategoryBtn" class="bg-green-500 text-white px-4 py-2 rounded flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Agregar Categoría
+        </button>
+    </section>
+
+    <!-- section tabla de Categorias -->
+    <section class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-lg shadow">
+            <thead class="bg-gray-200">
+                <tr>
+                    <th class="py-2 px-4 text-left">Nombre</th>
+                    <th class="py-2 px-4 text-left">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="categoryTableBody">
+                <!-- Carga de categorías en la tabla -->
+                <% categories.forEach((category) =>{ %>
+                    <tr>
+                        <td class="py-2 px4 border border-gray-300">
+                            <%= category.name %>
+                        </td>
+                        <td class="py-2 px-4 flex space-x-2">
+                            <!-- Botón de ver detalles -->
+                            <button class="bg-blue-500 text-white p-2 rounded" onclick="viewCategory('<%= category.id %>')">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7s-8.268-2.943-9.542-7z"></path></svg>
+                            </button>
+
+                            <!-- Botón de editar -->
+                            <button class="bg-yellow-500 text-white p-2 rounded" onclick="editCategory('<%= category.id %>')">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h4l2 2 5 5v7h-4l-6-6V9H5V5h6z"></path></svg>
+                            </button>
+
+                            <!-- Botón de eliminar -->
+                            <button class="bg-red-500 text-white p-2 rounded" onclick="deleteCategory('<%= category.id %>')">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M10 11v6m4-6v6m5 7H5a2 2 0 01-2-2V7h18v12a2 2 0 01-2 2z"></path></svg>
+                            </button>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </section>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        //función para agregar una categoria
+        document.getElementById('addCategoryBtn').addEventListener
+        ('click'), () =>{
+            Swal.fire({
+                title: 'Agregar Categoria',
+                html:`
+                    <input id="categoryName" class="swal2-input" placeholder="Nombre de la Categoría">
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Agregar',
+                cancelButtonText: 'Cancelar',
+                focusConfirm: false,
+                preConfirm: () =>{
+                    const name = document.getElementById('categoryName').value;
+                    //validación de nombre
+                    if(!name){
+                        Swal.fire('Error', 'Debes ingresar un nombre de categoría', 'error');
+                        return false;
+                    }
+                    return { name: name }
+                    
+                }
+            }).then((result) => {
+                //llamada a la API para agregar categoría
+                if (result.isConfirmed && result.value){
+                    fetch('/categorias', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(result.value)
+                    })
+                    .then(response = response.json())
+                    .then(data => {
+                        if(data.error){
+                            Swal.fire('Error', data.error, 'error');
+                        }else {
+                            Swal.fire('Éxito', 'Categoría agregada exitosamente','success').then(() => {
+                                location.reload();
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        Swal.fire('Error', 'No se pudo agregar el producto', 'error');
+                    });
+                }
+            })
+        }
+    </script>
 </body>
 </html>
